@@ -296,38 +296,6 @@ public class OwnCloudClient extends HttpClient {
         }
     }
 
-    private void logCookie(Cookie cookie) {
-        Log_OC.d(TAG, "Cookie name: " + cookie.name());
-        Log_OC.d(TAG, "       value: " + cookie.value());
-        Log_OC.d(TAG, "       domain: " + cookie.domain());
-        Log_OC.d(TAG, "       path: " + cookie.path());
-        Log_OC.d(TAG, "       expiryDate: " + cookie.expiresAt());
-        Log_OC.d(TAG, "       secure: " + cookie.secure());
-    }
-
-    private void logCookiesAtRequest(Headers headers, String when) {
-        int counter = 0;
-        for (final String cookieHeader : headers.toMultimap().get("cookie")) {
-            Log_OC.d(TAG + " #" + mInstanceNumber,
-                    "Cookies at request (" + when + ") (" + counter++ + "): "
-                            + cookieHeader);
-        }
-        if (counter == 0) {
-            Log_OC.d(TAG + " #" + mInstanceNumber, "No cookie at request before");
-        }
-    }
-
-    private void logSetCookiesAtResponse(Headers headers) {
-        int counter = 0;
-        for (final String cookieHeader : headers.toMultimap().get("set-cookie")) {
-            Log_OC.d(TAG + " #" + mInstanceNumber,
-                    "Set-Cookie (" + counter++ + "): " + cookieHeader);
-        }
-        if (counter == 0) {
-            Log_OC.d(TAG + " #" + mInstanceNumber, "No set-cookie");
-        }
-    }
-
     public String getCookiesString() {
         StringBuilder cookiesString = new StringBuilder();
         List<Cookie> cookieList = getCookiesFromUrl(HttpUrl.parse(mBaseUri.toString()));
@@ -421,11 +389,8 @@ public class OwnCloudClient extends HttpClient {
      * cannot be invalidated with the given arguments.
      */
     private boolean shouldInvalidateAccountCredentials(int httpStatusCode) {
-        boolean isServerVersionSupported = AccountUtils.getServerVersionForAccount(getAccount().getSavedAccount(),
-                getContext()).isServerVersionSupported();
-
         boolean shouldInvalidateAccountCredentials =
-                (httpStatusCode == HttpConstants.HTTP_UNAUTHORIZED || !isServerVersionSupported);
+                (httpStatusCode == HttpConstants.HTTP_UNAUTHORIZED);
 
         shouldInvalidateAccountCredentials &= (mCredentials != null &&         // real credentials
                 !(mCredentials instanceof OwnCloudCredentialsFactory.OwnCloudAnonymousCredentials));
@@ -452,10 +417,6 @@ public class OwnCloudClient extends HttpClient {
         );
         am.clearPassword(mAccount.getSavedAccount()); // being strict, only needed for Basic Auth credentials
         return true;
-    }
-
-    public OwnCloudClientManager getOwnCloudClientManager() {
-        return mOwnCloudClientManager;
     }
 
     void setOwnCloudClientManager(OwnCloudClientManager clientManager) {
